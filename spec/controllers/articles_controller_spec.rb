@@ -135,4 +135,71 @@ describe ArticlesController do
       end
     end
   end
+
+  describe "#update" do
+    let(:article) { create :article }
+    subject { patch :update, params: { id: article.id }}
+
+    context 'When invalid code provided' do
+      let(:invalid_attributes) do
+        {
+          "data" => {
+            "attributes" => {
+              "title" => '',
+              "content" => ''
+            }
+          }
+        }
+      end
+      subject { patch :update, params: invalid_attributes.merge(id: article.id) }
+      it 'should return 422 status code' do
+        subject
+        expect(response).to have_http_status(:unprocessable_entity)
+      end
+
+      it 'should return proper json error' do
+        subject
+        expect(json['errors']).to include(
+          {
+            "source" => { "pointer" => "/data/attributes/title" },
+            "detail"=>"can't be blank"
+          },
+          {
+          "source" => { "pointer" => "/data/attributes/content" },
+          "detail"=>"can't be blank"
+          }
+        )
+      end
+    end
+
+    context 'when success request is sent' do
+      let(:valid_attributes) do
+        {
+          "data" => {
+            "attributes" => {
+              "title" => article.title,
+              "content" => article.content,
+              "slug" => article.slug
+            }
+          }
+        }
+      end
+      subject { patch :update, params: valid_attributes.merge(id: article.id) }
+
+      it 'should have 201 status code' do
+        subject
+        expect(response).to have_http_status(:ok)
+      end
+
+      it 'should have proper json body' do
+        subject
+        expect(json_data['attributes']).to include(valid_attributes['data']['attributes'])
+      end
+
+      it 'should update the article' do
+        subject
+        expect(article.reload.title).to eq(valid_attributes['data']['attributes']['title'])
+      end
+    end
+  end
 end
