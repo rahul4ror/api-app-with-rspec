@@ -10,6 +10,7 @@ gem 'turbolinks'
 gem 'jbuilder', '~> 2.0'
 gem 'sdoc', '>= 0.4.0', group: :doct
 gem 'active_model_serializers'
+gem 'kaminari'
 
 group :development, :test do
   gem 'byebug'
