@@ -13,7 +13,7 @@ describe ArticlesController do
     end
 
     it "should return proper json" do
-      articles = create_list :article, 2  #(create_list method is provides by fatory_bot to create n number of object)
+      create_list :article, 2  #(create_list method is provides by fatory_bot to create n number of object)
 
       # get :index
       subject
@@ -22,7 +22,7 @@ describe ArticlesController do
       # json = JSON.parse(response.body)
       # json_data = json['data']
 
-      articles.each_with_index do |article, index|
+      Article.recent.each_with_index do |article, index|
         expect(json_data[index]['attributes']).to eq(
           {
             "title" => article.title,
@@ -31,6 +31,14 @@ describe ArticlesController do
           }
         )
       end
+    end
+
+    it "should return articles in proper order" do
+      old_article = create :article
+      new_article = create :article
+      subject
+      expect(json_data.first['id']).to eq(new_article.id.to_s)
+      expect(json_data.last['id']).to eq(old_article.id.to_s)
     end
   end
 end

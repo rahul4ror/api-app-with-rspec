@@ -3,8 +3,8 @@ require 'rails_helper'
 RSpec.describe Article, type: :model do
   describe "#validations" do
     it "should test that the factory is valid" do
-    expect(build :article).to be_valid
-  end
+      expect(build :article).to be_valid
+    end
 
     it "should validate the presence of title" do
       article = build :article, title: "" # article = FactoryBot.build :article, title: ""
@@ -28,6 +28,20 @@ RSpec.describe Article, type: :model do
       article = create :article  # FactoryBot.create :article
       invalid_article = FactoryBot.build :article, slug: article.slug
       expect(invalid_article).not_to be_valid
+    end
+  end
+
+  describe '.recent' do
+    it "should list recent articles" do
+      old_article = create :article
+      new_article = create :article
+      expect(described_class.recent).to eq(
+        [new_article, old_article]
+      )
+      old_article.update(created_at: Time.now)
+      expect(described_class.recent).to eq(
+        [old_article, new_article]
+      )
     end
   end
 end
