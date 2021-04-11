@@ -49,4 +49,90 @@ describe ArticlesController do
       expect(json_data.first['id']).to eq(expected_article)
     end
   end
+
+  describe "#show" do
+    let(:article) { create :article }
+    subject { get :show, params: { id: article.id } }
+
+    it "should show success response" do
+      subject
+      expect(response).to have_http_status(:ok)
+    end
+
+    it "should return proper json" do
+      subject
+      expect(json_data['attributes']).to eq({
+        "title" => article.title,
+        "content" => article.content,
+        "slug" => article.slug
+      })
+    end
+  end
+
+  describe "#create" do
+    context 'When invalid code provided' do
+      let(:invalid_attributes) do
+        {
+          "data" => {
+            "attributes" => {
+              "title" => '',
+              "content" => ''
+            }
+          }
+        }
+      end
+      subject { post :create, params: invalid_attributes }
+      it 'should return 422 status code' do
+        subject
+        expect(response).to have_http_status(:unprocessable_entity)
+      end
+
+      it 'should return proper json error' do
+        subject
+        expect(json['errors']).to include(
+          {
+            "source" => { "pointer" => "/data/attributes/title" },
+            "detail"=>"can't be blank"
+          },
+          {
+          "source" => { "pointer" => "/data/attributes/content" },
+          "detail"=>"can't be blank"
+          },
+          {
+            "source" => { "pointer" => "/data/attributes/slug" },
+            "detail"=>"can't be blank"
+          }
+        )
+      end
+    end
+
+    context 'when success request is sent' do
+      let(:valid_attributes) do
+        {
+          "data" => {
+            "attributes" => {
+              "title" => 'awsome title',
+              "content" => 'awsome context',
+              "slug" => 'awsome-slug'
+            }
+          }
+        }
+      end
+      subject { post :create, params: valid_attributes }
+
+      it 'should have 201 status code' do
+        subject
+        expect(response).to have_http_status(:created)
+      end
+
+      it 'should have proper json body' do
+        subject
+        expect(json_data['attributes']).to include(valid_attributes['data']['attributes'])
+      end
+
+      it 'should create the article' do
+        expect{ subject }.to change{ Article.count}.by(1)
+      end
+    end
+  end
 end
